@@ -3,6 +3,8 @@ body {
     margin: 0;
     padding: 0;
     text-align: center;
+    background-color: purple; /* 设置背景颜色为紫色 */
+    color: white; /* 设置字体颜色为白色 */
 }
 nav {
     margin: 20px 0;
@@ -10,7 +12,7 @@ nav {
 nav a {
     margin: 0 10px;
     text-decoration: none;
-    color: #007BFF;
+    color: #FFD700; /* 设置导航链接颜色为金色 */
 }
 nav a:hover {
     text-decoration: underline;
