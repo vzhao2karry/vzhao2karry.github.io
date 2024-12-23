@@ -3,7 +3,7 @@ body {
     margin: 0;
     padding: 0;
     text-align: center;
-    background-color: purple; /* 设置背景颜色为紫色 */
+    background-color: rgb(246, 138, 246); /* 设置背景颜色为紫色 */
     color: white; /* 设置字体颜色为白色 */
 }
 nav {
