@@ -21,3 +21,4 @@ chcp 65001： 指定页面的编码是UTF-8
 在cmd中指定完编码之后，再Modelfile中设置用中文回应。
 
 
+4.在自己的电脑上面安装 docker 和 ollama
