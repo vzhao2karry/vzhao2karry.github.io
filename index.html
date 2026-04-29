@@ -2,27 +2,65 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Home</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Personal space for notes, experiments, and shipping work with calm momentum.">
+    <title>Vivian Zhao | Home</title>
     <link rel="icon" href="/image/sanctuary.ico" type="image/x-icon">
-    <style>
-        nav a {
-            display: inline-block;
-            margin-right: 15px; /* 调整间距 */
-            text-decoration: none; /* 去掉下划线 */
-            color: black; /* 链接颜色 */
-        }
-    </style>
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-    <header>
-        <h1>Welcome to My 2.0 World</h1>
-        <nav>
-            <a href="/books/">books</a>
-            <a href="/2.0/">2</a>
-            <a href="/diary/">diary</a>
+    <div class="noise"></div>
+
+    <header class="site-header reveal">
+        <a class="brand" href="/">Vivian Zhao</a>
+        <nav class="site-nav">
+            <a href="/road_to/">Roadmap</a>
+            <a href="/algo/">Notes</a>
+            <a href="/diary/">Diary</a>
         </nav>
     </header>
+
+    <main>
+        <section class="hero reveal">
+            <p class="eyebrow">Personal Web 2.0</p>
+            <h1>Quiet system, clear thinking, shipped every week.</h1>
+            <p class="hero-copy">
+                A minimal place to write, prototype, and document progress across data, engineering,
+                and AI workflows.
+            </p>
+            <div class="hero-actions">
+                <a class="btn btn-primary" href="/road_to/ai.md">Explore Work</a>
+                <a class="btn btn-secondary" href="/diary/">Open Diary</a>
+            </div>
+        </section>
+
+        <section class="grid reveal" aria-label="Highlighted sections">
+            <article class="card">
+                <p class="card-kicker">Learning</p>
+                <h2>Algorithms & Fundamentals</h2>
+                <p>Compact notes for data structure basics and repeatable problem-solving patterns.</p>
+                <a href="/algo/">Read notes</a>
+            </article>
+            <article class="card">
+                <p class="card-kicker">Execution</p>
+                <h2>Road to Better Engineering</h2>
+                <p>Ongoing plans covering API design, LLM tooling, platform and delivery workflows.</p>
+                <a href="/road_to/">See roadmap</a>
+            </article>
+            <article class="card">
+                <p class="card-kicker">Journal</p>
+                <h2>Daily Signals</h2>
+                <p>Real weekly snapshots: what worked, what failed, and what changed next.</p>
+                <a href="/diary/">Open entries</a>
+            </article>
+        </section>
+    </main>
+
+    <footer class="site-footer reveal">
+        <p>Built with GitHub Pages. Maintained with patience.</p>
+    </footer>
+
+    <script src="script.js"></script>
 </body>
 </html>
 
