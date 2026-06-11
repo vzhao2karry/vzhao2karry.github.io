@@ -117,6 +117,23 @@
                 return /\.md$/i.test(name || "");
             }
 
+            function decodeBase64Utf8(base64Text) {
+                var binary = atob(base64Text.replace(/\n/g, ""));
+                var bytes = new Uint8Array(binary.length);
+                var i;
+
+                for (i = 0; i < binary.length; i += 1) {
+                    bytes[i] = binary.charCodeAt(i);
+                }
+
+                if (window.TextDecoder) {
+                    return new TextDecoder("utf-8").decode(bytes);
+                }
+
+                // Fallback for very old browsers.
+                return decodeURIComponent(escape(binary));
+            }
+
             function toHtml(rawText, entryName) {
                 if (isMarkdown(entryName) && window.marked) {
                     return window.marked.parse(rawText || "");
@@ -156,7 +173,7 @@
                             throw new Error("empty-content");
                         }
 
-                        var text = atob(payload.content.replace(/\n/g, ""));
+                        var text = decodeBase64Utf8(payload.content);
                         if (!text.trim()) {
                             statusEl.textContent = "This entry is currently empty.";
                             return;
