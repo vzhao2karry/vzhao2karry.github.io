@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Diary Entry</title>
+    <link rel="icon" href="/image/sanctuary.ico" type="image/x-icon">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.7;
+            margin: 0;
+            background: #f4f4f4;
+            color: #212529;
+        }
+        header {
+            background-color: #343a40;
+            color: #fff;
+            padding: 12px 16px;
+        }
+        header .bar {
+            max-width: 860px;
+            margin: 0 auto;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+        }
+        header a {
+            color: #fff;
+            text-decoration: none;
+            background: #495057;
+            padding: 8px 12px;
+            border-radius: 4px;
+        }
+        header a:hover {
+            background: #6c757d;
+        }
+        .container {
+            max-width: 860px;
+            margin: 24px auto;
+            background: #fff;
+            padding: 28px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.08);
+        }
+        h1 {
+            margin-top: 0;
+            margin-bottom: 18px;
+            color: #343a40;
+            font-size: 28px;
+        }
+        #status {
+            color: #6c757d;
+            margin: 0;
+        }
+        #content {
+            white-space: normal;
+            word-break: break-word;
+        }
+        #content p {
+            margin: 0 0 1em;
+        }
+        #content pre {
+            overflow-x: auto;
+            background: #f1f3f5;
+            padding: 12px;
+            border-radius: 6px;
+        }
+        #content code {
+            font-family: Consolas, monospace;
+        }
+        #content blockquote {
+            border-left: 4px solid #ced4da;
+            margin: 0 0 1em;
+            padding: 0.2em 1em;
+            color: #495057;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="bar">
+            <strong>My Diary</strong>
+            <a href="/diary/">Back to list</a>
+        </div>
+    </header>
+
+    <main class="container">
+        <h1 id="title">Diary Entry</h1>
+        <p id="status">Loading entry...</p>
+        <article id="content"></article>
+    </main>
+
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <script>
+        (function () {
+            var titleEl = document.getElementById("title");
+            var statusEl = document.getElementById("status");
+            var contentEl = document.getElementById("content");
+
+            function getRepoInfo() {
+                var host = window.location.hostname || "";
+                if (host.endsWith(".github.io")) {
+                    var owner = host.split(".")[0];
+                    return { owner: owner, repo: owner + ".github.io" };
+                }
+
+                return { owner: "vzhao2karry", repo: "vzhao2karry.github.io" };
+            }
+
+            function getEntryName() {
+                var params = new URLSearchParams(window.location.search);
+                return params.get("entry");
+            }
+
+            function isMarkdown(name) {
+                return /\.md$/i.test(name || "");
+            }
+
+            function toHtml(rawText, entryName) {
+                if (isMarkdown(entryName) && window.marked) {
+                    return window.marked.parse(rawText || "");
+                }
+
+                var safe = (rawText || "")
+                    .replace(/&/g, "&amp;")
+                    .replace(/</g, "&lt;")
+                    .replace(/>/g, "&gt;");
+                return "<p>" + safe.replace(/\n{2,}/g, "</p><p>").replace(/\n/g, "<br>") + "</p>";
+            }
+
+            function loadEntry() {
+                var entryName = getEntryName();
+                if (!entryName) {
+                    statusEl.textContent = "Missing entry parameter. Example: ?entry=2026-04-28.md";
+                    return;
+                }
+
+                titleEl.textContent = entryName.replace(/\.md$/i, "");
+
+                var repoInfo = getRepoInfo();
+                var apiUrl = "https://api.github.com/repos/" + repoInfo.owner + "/" + repoInfo.repo + "/contents/diary/" + encodeURIComponent(entryName);
+
+                fetch(apiUrl)
+                    .then(function (response) {
+                        if (response.status === 404) {
+                            throw new Error("not-found");
+                        }
+                        if (!response.ok) {
+                            throw new Error("api-failed");
+                        }
+                        return response.json();
+                    })
+                    .then(function (payload) {
+                        if (!payload.content) {
+                            throw new Error("empty-content");
+                        }
+
+                        var text = atob(payload.content.replace(/\n/g, ""));
+                        if (!text.trim()) {
+                            statusEl.textContent = "This entry is currently empty.";
+                            return;
+                        }
+
+                        contentEl.innerHTML = toHtml(text, entryName);
+                        statusEl.textContent = "";
+                    })
+                    .catch(function (err) {
+                        if (err.message === "not-found") {
+                            statusEl.textContent = "Entry not found. Please check the file name in URL.";
+                            return;
+                        }
+                        statusEl.textContent = "Unable to load this entry right now. Please try again later.";
+                    });
+            }
+
+            loadEntry();
+        })();
+    </script>
+</body>
+</html>

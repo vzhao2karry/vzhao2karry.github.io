@@ -94,7 +94,7 @@
             function addEntry(name) {
                 var item = document.createElement("li");
                 var link = document.createElement("a");
-                link.href = "/diary/" + encodeURIComponent(name);
+                link.href = "/diary/entry.html?entry=" + encodeURIComponent(name);
                 link.textContent = displayName(name);
                 item.appendChild(link);
                 linksContainer.appendChild(item);
