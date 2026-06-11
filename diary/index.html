@@ -24,12 +24,20 @@
             background-color: #495057;
             padding: 10px;
         }
+        nav ul {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            list-style: none;
+            margin: 0;
+            padding: 0;
+            gap: 8px;
+        }
         nav a {
             display: block;
             color: white;
             text-decoration: none;
             padding: 10px 15px;
-            margin: 0 10px;
         }
         nav a:hover {
             background-color: #6c757d;
@@ -47,19 +55,91 @@
         p {
             margin-bottom: 20px;
         }
+        .hint {
+            color: #6c757d;
+            font-size: 14px;
+        }
     </style>
 </head>
 <body>
     <header>
         <h1>My Diary</h1>
         <nav>
-            <a href="/diary/202501014">202501014</a>
-            <a href="/diary/202501015">202501015</a>
-            <a href="/diary/202501016">202501016</a>
+            <ul id="diary-links"></ul>
         </nav>
     </header>
     <div class="container">
         <h2>Diary Entry Title</h2>
+        <p class="hint" id="diary-status">Loading diary entries...</p>
     </div>
+    <script>
+        (function () {
+            var linksContainer = document.getElementById("diary-links");
+            var status = document.getElementById("diary-status");
+
+            function getRepoInfo() {
+                var host = window.location.hostname || "";
+                if (host.endsWith(".github.io")) {
+                    var owner = host.split(".")[0];
+                    return { owner: owner, repo: owner + ".github.io" };
+                }
+
+                return { owner: "vzhao2karry", repo: "vzhao2karry.github.io" };
+            }
+
+            function displayName(fileName) {
+                return fileName.replace(/\.md$/i, "");
+            }
+
+            function addEntry(name) {
+                var item = document.createElement("li");
+                var link = document.createElement("a");
+                link.href = "/diary/" + encodeURIComponent(name);
+                link.textContent = displayName(name);
+                item.appendChild(link);
+                linksContainer.appendChild(item);
+            }
+
+            function renderEntries(entries) {
+                linksContainer.innerHTML = "";
+
+                entries
+                    .filter(function (entry) {
+                        return entry.type === "file" && entry.name !== "index.html";
+                    })
+                    .sort(function (a, b) {
+                        return b.name.localeCompare(a.name);
+                    })
+                    .forEach(function (entry) {
+                        addEntry(entry.name);
+                    });
+
+                if (linksContainer.children.length === 0) {
+                    status.textContent = "No diary entries found yet.";
+                } else {
+                    status.textContent = "";
+                }
+            }
+
+            function loadDiaryEntries() {
+                var repoInfo = getRepoInfo();
+                var apiUrl = "https://api.github.com/repos/" + repoInfo.owner + "/" + repoInfo.repo + "/contents/diary";
+
+                fetch(apiUrl)
+                    .then(function (response) {
+                        if (!response.ok) {
+                            throw new Error("Failed to load diary list");
+                        }
+                        return response.json();
+                    })
+                    .then(renderEntries)
+                    .catch(function () {
+                        status.textContent = "Unable to load diary list automatically. Please check repository visibility or API rate limit.";
+                    });
+            }
+
+            loadDiaryEntries();
+        })();
+    </script>
 </body>
 </html>
