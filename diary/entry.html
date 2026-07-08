@@ -123,6 +123,100 @@
         #content a:hover {
             color: #764ba2;
         }
+        .action-bar {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 24px;
+            flex-wrap: wrap;
+        }
+        .btn {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 10px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            transition: all 0.2s ease;
+        }
+        .btn:hover {
+            background: #764ba2;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+        }
+        .btn:active {
+            transform: translateY(0);
+        }
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+        }
+        .modal.show {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .modal-content {
+            background-color: #fff;
+            padding: 32px;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+            max-width: 500px;
+            width: 90%;
+        }
+        .modal-content h2 {
+            margin-top: 0;
+            color: #667eea;
+            margin-bottom: 20px;
+        }
+        .modal-content label {
+            display: block;
+            margin-bottom: 12px;
+            cursor: pointer;
+        }
+        .modal-content input[type="checkbox"] {
+            margin-right: 8px;
+            cursor: pointer;
+        }
+        .modal-content textarea {
+            width: 100%;
+            min-height: 120px;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-family: monospace;
+            font-size: 13px;
+            resize: vertical;
+            margin-top: 16px;
+            display: none;
+        }
+        .modal-content textarea.show {
+            display: block;
+        }
+        .modal-buttons {
+            display: flex;
+            gap: 12px;
+            margin-top: 24px;
+            justify-content: flex-end;
+        }
+        .btn-cancel {
+            background: #e9ecef;
+            color: #495057;
+        }
+        .btn-cancel:hover {
+            background: #dee2e6;
+        }
+        .btn-download {
+            background: #667eea;
+            color: white;
+        }
         @media (max-width: 768px) {
             .container {
                 margin: 16px;
@@ -133,6 +227,12 @@
             }
             #content p {
                 font-size: 15px;
+            }
+            .action-bar {
+                flex-direction: column;
+            }
+            .btn {
+                width: 100%;
             }
         }
     </style>
@@ -148,8 +248,33 @@
     <main class="container">
         <h1 id="title">Diary Entry</h1>
         <p id="status">Loading entry...</p>
+        <div class="action-bar">
+            <button class="btn" id="downloadBtn">⬇ Download</button>
+        </div>
         <article id="content"></article>
     </main>
+
+    <!-- Download Modal -->
+    <div id="downloadModal" class="modal">
+        <div class="modal-content">
+            <h2>Download Entry</h2>
+            <p>Select what to download:</p>
+            <label>
+                <input type="checkbox" id="includeTitle" checked> Include title
+            </label>
+            <label>
+                <input type="checkbox" id="includeDate" checked> Include date
+            </label>
+            <label>
+                <input type="checkbox" id="includeContent" checked> Include content
+            </label>
+            <textarea id="previewText" placeholder="Preview will appear here..."></textarea>
+            <div class="modal-buttons">
+                <button class="btn btn-cancel" id="cancelBtn">Cancel</button>
+                <button class="btn btn-download" id="confirmDownloadBtn">Download as .md</button>
+            </div>
+        </div>
+    </div>
 
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <script>
@@ -157,6 +282,17 @@
             var titleEl = document.getElementById("title");
             var statusEl = document.getElementById("status");
             var contentEl = document.getElementById("content");
+            var downloadBtn = document.getElementById("downloadBtn");
+            var downloadModal = document.getElementById("downloadModal");
+            var cancelBtn = document.getElementById("cancelBtn");
+            var confirmDownloadBtn = document.getElementById("confirmDownloadBtn");
+            var includeTitleCheckbox = document.getElementById("includeTitle");
+            var includeDateCheckbox = document.getElementById("includeDate");
+            var includeContentCheckbox = document.getElementById("includeContent");
+            var previewText = document.getElementById("previewText");
+
+            var rawMarkdownText = ""; // Store raw markdown
+            var entryFileName = "";
 
             function getRepoInfo() {
                 var host = window.location.hostname || "";
@@ -206,13 +342,61 @@
                 return "<p>" + safe.replace(/\n{2,}/g, "</p><p>").replace(/\n/g, "<br>") + "</p>";
             }
 
+            function generateDownloadContent() {
+                var content = "";
+
+                if (includeTitleCheckbox.checked) {
+                    content += "# " + titleEl.textContent + "\n\n";
+                }
+
+                if (includeDateCheckbox.checked) {
+                    var today = new Date().toISOString().split("T")[0];
+                    content += "**Date:** " + today + "\n\n";
+                }
+
+                if (includeContentCheckbox.checked) {
+                    content += rawMarkdownText + "\n";
+                }
+
+                return content;
+            }
+
+            function updatePreview() {
+                var preview = generateDownloadContent();
+                previewText.classList.add("show");
+                previewText.value = preview;
+            }
+
+            function downloadAsMarkdown() {
+                var content = generateDownloadContent();
+                var fileName = entryFileName.replace(/\.md$/i, "_export.md");
+                
+                // Create blob and download
+                var blob = new Blob([content], { type: "text/markdown;charset=utf-8;" });
+                var link = document.createElement("a");
+                var url = URL.createObjectURL(blob);
+                
+                link.setAttribute("href", url);
+                link.setAttribute("download", fileName);
+                link.style.visibility = "hidden";
+                
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                
+                // Close modal
+                downloadModal.classList.remove("show");
+            }
+
             function loadEntry() {
                 var entryName = getEntryName();
                 if (!entryName) {
                     statusEl.textContent = "Missing entry parameter. Example: ?entry=2026-04-28.md";
+                    downloadBtn.disabled = true;
                     return;
                 }
 
+                entryFileName = entryName;
                 titleEl.textContent = entryName.replace(/\.md$/i, "");
 
                 var repoInfo = getRepoInfo();
@@ -236,11 +420,14 @@
                         var text = decodeBase64Utf8(payload.content);
                         if (!text.trim()) {
                             statusEl.textContent = "This entry is currently empty.";
+                            downloadBtn.disabled = true;
                             return;
                         }
 
+                        rawMarkdownText = text;
                         contentEl.innerHTML = toHtml(text, entryName);
                         statusEl.textContent = "";
+                        downloadBtn.disabled = false;
                     })
                     .catch(function (err) {
                         if (err.message === "not-found") {
@@ -250,6 +437,31 @@
                         statusEl.textContent = "Unable to load this entry right now. Please try again later.";
                     });
             }
+
+            // Event listeners
+            downloadBtn.addEventListener("click", function () {
+                updatePreview();
+                downloadModal.classList.add("show");
+            });
+
+            cancelBtn.addEventListener("click", function () {
+                downloadModal.classList.remove("show");
+            });
+
+            confirmDownloadBtn.addEventListener("click", function () {
+                downloadAsMarkdown();
+            });
+
+            includeTitleCheckbox.addEventListener("change", updatePreview);
+            includeDateCheckbox.addEventListener("change", updatePreview);
+            includeContentCheckbox.addEventListener("change", updatePreview);
+
+            // Close modal when clicking outside
+            downloadModal.addEventListener("click", function (e) {
+                if (e.target === downloadModal) {
+                    downloadModal.classList.remove("show");
+                }
+            });
 
             loadEntry();
         })();
